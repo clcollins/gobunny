@@ -1,0 +1,18 @@
+FROM golang:1.8
+LABEL maintainer="Chris Collins <collins.christopher@gmail.com>"
+
+ENV appname=gobunny
+ENV user=clcollins
+
+ENV APPDIR="/go/src/github.com/${user}/${appname}"
+
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+
+COPY ./ ${APPDIR}
+WORKDIR ${APPDIR}
+
+RUN go get
+RUN go build -a -installsuffix cgo -v
+
+RUN go test -v
