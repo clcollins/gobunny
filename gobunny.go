@@ -115,9 +115,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "send":
-		fmt.Printf("DEBUG: %s", os.Args[2:])
 		sendCommand.Parse(os.Args[2:])
-	  fmt.Printf("DEBUG: %s", *sendMessagePtr )
 	case "listen":
 		listenCommand.Parse(os.Args[2:])
 	default:
@@ -125,9 +123,10 @@ func main() {
 		 os.Exit(1)
 	}
 
-	fmt.Printf("DEBUG: %s", *sendMessagePtr )
+	// THIS ISN'T WORKING: sendMessagePtr *always* has the
+	// default value, when it should contain the content of the
+	// string I pass on the command line.  WTH?
 	if sendCommand.Parsed() {
-		fmt.Printf("DEBUG: %s", *sendMessagePtr )
 	  if *sendMessagePtr == "" {
 	  	sendCommand.PrintDefaults()
 	  	os.Exit(1)
