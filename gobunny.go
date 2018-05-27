@@ -11,19 +11,6 @@ import (
 	"flag"
 )
 
-var mailServer = "localhost"
-var mailPort = "5672"
-var mailUser = "guest"
-
-var amqpUrl = fmt.Sprintf("amqp://%s:%s@%s:%s/",
-	mailUser,
-	mailUser,
-	mailServer,
-	mailPort,
-)
-
-var mailQueue = "goBunnyQ"
-
 func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
@@ -47,7 +34,7 @@ func openChannel(conn *amqp.Connection) (channel *amqp.Channel) {
 	return channel
 }
 
-func declareQueue(channel *amqp.Channel) (queue amqp.Queue) {
+func declareQueue(channel *amqp.Channel, mailQueue string) (queue amqp.Queue) {
 	queue, err := channel.QueueDeclare(
 		mailQueue,
 		false, // durable
@@ -101,18 +88,42 @@ func listenForMail(channel *amqp.Channel, queue amqp.Queue) {
 }
 
 func main() {
+
+	// Default connection info
+  var mailServer = "localhost"
+	var mailPort = "5672"
+  var mailUser = "guest"
+  var mailQueue = "goBunnyQ"
+
+	// Check to see if a different RMQ server is specified
+	if os.Getenv("rmq_server") != "" {
+		mailServer = os.Getenv("rmq_server")
+	}
+
+	// Construct the AMQP URL based on info above
+  var amqpUrl = fmt.Sprintf("amqp://%s:%s@%s:%s/",
+  	mailUser,
+  	mailUser,
+  	mailServer,
+  	mailPort,
+  )
+
+	// "send" option on the command line, with a default message
 	sendCommand := flag.NewFlagSet("send", flag.ExitOnError)
 	sendMessagePtr := sendCommand.String("message",
 		"Hello World!",
 		"message to send")
 
+	// "listen" option on the command line
 	listenCommand := flag.NewFlagSet("listen", flag.ExitOnError)
 
+	// Require arguments
 	if len(os.Args) < 2 {
 			fmt.Println("send or listen sub-command is required")
 			os.Exit(1)
 	}
 
+	// Parse commands based on input
 	switch os.Args[1] {
 	case "send":
 		sendCommand.Parse(os.Args[2:])
@@ -134,7 +145,7 @@ func main() {
 	  fmt.Println("GoBunny Sends!")
 	  conn := connect(amqpUrl)
 	  channel := openChannel(conn)
-	  queue := declareQueue(channel)
+	  queue := declareQueue(channel, mailQueue)
 
 	  sendMail(channel, queue, *sendMessagePtr)
 	  defer channel.Close()
@@ -145,7 +156,7 @@ func main() {
 	  fmt.Println("GoBunny Listens!")
 	  conn := connect(amqpUrl)
 	  channel := openChannel(conn)
-	  queue := declareQueue(channel)
+	  queue := declareQueue(channel, mailQueue)
 
 	  listenForMail(channel, queue)
 	  defer channel.Close()
