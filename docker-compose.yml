@@ -1,7 +1,18 @@
 ---
 version: '3'
 services:
-  app:
-    image: gobunny:latest
+  # A RabbitMQ server for testing
+  rmq:
+    image: rabbitmq:3.7-alpine
+    hostname: rabbit
     ports:
-      - 127.0.0.1:80:8080
+      - 0.0.0.0:5672:5672
+  # GoBunny
+  gobunny:
+    image: gobunny:latest
+    entrypoint: /gobunny
+    # Default to listen command
+    command: listen
+    # Connect to this RMQ server
+    environment:
+      - rmq_server=bargle
