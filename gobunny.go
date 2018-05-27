@@ -134,9 +134,10 @@ func main() {
 		 os.Exit(1)
 	}
 
-	// THIS ISN'T WORKING: sendMessagePtr *always* has the
-	// default value, when it should contain the content of the
-	// string I pass on the command line.  WTH?
+	// Ok, this DOES work, but you have to specify the flag
+	// --message="some message"
+	// or --message "hi there"
+	// For some reason, I thought it was positional
 	if sendCommand.Parsed() {
 	  if *sendMessagePtr == "" {
 	  	sendCommand.PrintDefaults()
