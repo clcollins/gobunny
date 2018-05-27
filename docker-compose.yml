@@ -15,4 +15,4 @@ services:
     command: listen
     # Connect to this RMQ server
     environment:
-      - rmq_server=bargle
+      - rmq_server=rmq
